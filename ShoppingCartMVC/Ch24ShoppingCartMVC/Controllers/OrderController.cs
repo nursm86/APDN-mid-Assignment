@@ -13,21 +13,21 @@ namespace Ch24ShoppingCartMVC.Controllers {
         [HttpGet]
         public ActionResult Index(string id) {
             //get list for drop down from temp data called products 
-            SelectList products = (SelectList)TempData["products"];
+            SelectList products = TempData["products"] as SelectList;
 
             if (products == null) {
                 //CALL THE METHOD GetProductList 
                 var list = order.GetProductsList();
                 //CREATE THE SelectList products
-                products = new SelectList(list,"Name", "Name", id);
-            } 
+                products = new SelectList(list,"ProductID", "Name", id);
+            }
             //if no URL parameter, get first product from list and refresh
             if (string.IsNullOrEmpty(id)) {
                 id = products.ElementAt(0).Value;
                 //ASSIGN products to temp data called products
                 TempData["products"] = order.GetProductByIdFromDataStore(id);
                 //Redirect to the action method Index of the Order controller with id parameter.
-                return RedirectToAction("index",id);
+                return RedirectToAction("index",new{id = id});
             }
             else { //get selected product and return in view method
                 //Call the method GetOrderInfo to get an OrderViewModel object called model
@@ -45,7 +45,7 @@ namespace Ch24ShoppingCartMVC.Controllers {
         {
             string pID = collection["ddlProducts"];
             //Redirect to the action method index of the Order controller with parameter the id assigned to pID
-            ___________________________________________________
+            return RedirectToAction("index", new { id = pID });
         }      
     }
 }

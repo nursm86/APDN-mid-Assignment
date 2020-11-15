@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 using Ch24ShoppingCartMVC.Models;
 
 namespace Ch24ShoppingCartMVC.Models{
     public class CartModel
     {
-        //Data Access methods 
+        //Data Access methods
         private List<ProductViewModel> GetCartFromDataStore()
         {
             List<ProductViewModel> cart;
@@ -34,13 +35,14 @@ namespace Ch24ShoppingCartMVC.Models{
             //Call the method GetCartFromDataStore
             model.Cart = GetCartFromDataStore();
             if (!string.IsNullOrEmpty(id))
-                //Called the method GetSelectedProduct with parameter id and assign the return object to the AddedProduct
                 model.AddedProduct = GetSelectedProduct(id);
             return model;
         }
         private void AddItemToDataStore(CartViewModel model)
-        {   //Add the AddedProduct to the cart
-            
+        {
+            List<ProductViewModel> cart = HttpContext.Current.Session["cart"] as List<ProductViewModel>;
+            cart.Add(model.AddedProduct);
+            HttpContext.Current.Session["cart"] = cart;
         }
         public void AddToCart(CartViewModel model)
         {
@@ -51,11 +53,18 @@ namespace Ch24ShoppingCartMVC.Models{
                 //Find the product in the cart that matches the id using lambda expression.
                 ProductViewModel inCart = model.Cart.Where(x => x.ProductID == id).FirstOrDefault();
                 if (inCart == null)
-                    AddItemToDataStore(model);                    //Call the method AddItemToDataStore
+                    AddItemToDataStore(model);
                 else
-                    model.AddedProduct.Quantity += model.AddedProduct.Quantity;
-                    //Increase the Quantity by the quantity of the added product
-                    
+                {
+                    ProductViewModel pvm = model.Cart.Where(x => x.ProductID == id).FirstOrDefault();
+                    pvm.Quantity += model.AddedProduct.Quantity;
+                    List<ProductViewModel> cart = HttpContext.Current.Session["cart"] as List<ProductViewModel>;
+                    int index = cart.IndexOf(pvm);
+                    if (index != -1)
+                        cart[index] = pvm;
+                    HttpContext.Current.Session["cart"] = cart;
+                }
+                    //Increase the Quantity by the quantity of the added product     
             }
         }
                 
